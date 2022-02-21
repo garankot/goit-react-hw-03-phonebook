@@ -15,25 +15,31 @@ export default class App extends Component {
     filter: '',
   };
 
-  addContact = cont => {
-    const searchSameName = this.state.contacts
-      .map(cont => cont.name.toLowerCase())
-      .includes(cont.name.toLowerCase());
-
-    if (searchSameName) {
-      alert(`${cont.name} is already in contacts`);
-    } else if (cont.name.length === 0) {
-      alert('Fields must be filled!');
-    } else {
-      const contact = {
-        ...cont,
-        id: nanoid(),
-      };
-
-      this.setState(prevState => ({
-        contacts: [...prevState.contacts, contact],
-      }));
+  componentDidMount(prevProps, prevState) {
+    const contacts = localStorage.getItem('contacts');
+    const parsedContacts = JSON.parse(contacts);
+    if (parsedContacts) {
+      this.setState({ contacts: parsedContacts });
     }
+  }
+
+  componentDidUpdate(_, prevState) {
+    if (prevState.contacts !== this.state.contacts) {
+      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
+    }
+  }
+
+  addContact = ({ name, number }) => {
+    const searchSameName = this.state.contacts.find(
+      contact => contact.name.toLowerCase() === name.toLowerCase()
+    );
+    if (searchSameName) {
+      return alert(`${name} is already in contacts.`);
+    }
+
+    this.setState(prevState => ({
+      contacts: [{ name, number, id: nanoid() }, ...prevState.contacts],
+    }));
   };
 
   changeFilter = filter => {
@@ -55,20 +61,6 @@ export default class App extends Component {
       };
     });
   };
-
-  componentDidMount() {
-    const contacts = localStorage.getItem('contacts');
-    const parsedContacts = JSON.parse(contacts);
-    if (parsedContacts) {
-      this.setState({ contacts: parsedContacts });
-    }
-  }
-
-  componentDidUpdate(_, prevState) {
-    if (prevState.contacts !== this.state.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    }
-  }
 
   render() {
     const { filter } = this.state;
